@@ -3,11 +3,16 @@ package modelo.dao;
 import excepciones.CampoVacioExcepcion;
 import modelo.dao.helper.LogFile;
 import modelo.dao.helper.Sql;
+import observer.EjemploObservable;
+import observer.LibroObserver;
+import observer.Observer;
 import singleton.ConexionMySQL;
 import modelo.Libro;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Aquí implementaremos las reglas de negocio definidas
@@ -17,6 +22,8 @@ import java.util.List;
  */
 public class LibroDAOImpl implements LibroDAO {
     private final Connection con;
+    private static LibroObserver observableLibro = new LibroObserver();
+
     private static final String sqlINSERT="INSERT INTO libro (nombre,autor,editorial,categoria) VALUES (?,?,?,?)";
     private static final String sqlUPDATE="UPDATE libro SET nombre=?, autor=?, editorial=?, categoria=? WHERE id = ?";
     private static final String sqlDELETE="DELETE FROM libro WHERE id = ?";
@@ -40,6 +47,7 @@ public class LibroDAOImpl implements LibroDAO {
             }
         }
         grabaEnLogIns(libro,sqlINSERT);
+        observableLibro.update("insertado");
         return insertado;
     }
 
@@ -63,6 +71,7 @@ public class LibroDAOImpl implements LibroDAO {
             actualizado=pstmt.executeUpdate()==1;
         }
         grabaEnLogUpd(libro,sqlUPDATE);
+        observableLibro.update("modificado");
         return actualizado;
     }
     private void grabaEnLogUpd(Libro libro,String sql) throws Exception {
